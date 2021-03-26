@@ -7,7 +7,10 @@
 
 :root {
     --main-theme: #dda833;
-    --background-theme: #ccae5a;
+    --main-background-theme: #ccae5a;
+
+    --secondary-theme: #3d9ee3;
+    --secondary-background-theme: #2568c4;
 }
 
 body {
@@ -24,7 +27,7 @@ code {
 }
 
 #timeline {
-    background-color: var(--background-theme);
+    background-color: var(--main-background-theme);
 }
 
 .title {
@@ -55,7 +58,7 @@ code {
     width: 100%;
     margin: 0;
     color: black;
-    background-color: #00ddee;
+    background-color: var(--secondary-theme);
     border: none;
     padding: 10px;
     border-radius: 5px;
@@ -66,7 +69,7 @@ code {
 }
 
 .file-upload-btn:hover {
-    background-color: #00ccdd;
+    background-color: var(--secondary-background-theme);
 }
 
 .file-upload-content {
@@ -87,7 +90,7 @@ code {
 
 .file-upload-wrap {
     margin-bottom: 20px;
-    border: 4px dashed var(--background-theme);
+    border: 4px dashed var(--main-background-theme);
     position: relative;
 }
 

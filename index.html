@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Civ VI Timeline</title>
+
+    <link rel="stylesheet" type="text/css" href="index.css">
+    <link href="https://cdn.jsdelivr.net/gh/StephanWagner/jBox@v1.2.14/dist/jBox.all.min.css" rel="stylesheet">
+
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/StephanWagner/jBox@v1.2.14/dist/jBox.all.min.js"></script>
+
+    <script src="formats.js"></script>
+    <script src="render.js"></script>
+
+</head>
+
+<body>
+    <h1 class="title">Civilization VI Timeline Viewer</h1>
+
+
+    <p class="subheading">This website displays the Civilization VI timeline of your civilization (or the other
+        civilizations) that you can download at the end of a game. The file will be in JSON format.
+        <br />
+        <br />
+        The path to your file should be roughly: <br />
+        <code>C:\Users\&lt;YOUR-USER&gt;\Documents\My Games\Sid Meier's Civilization VI\GameSummary</code>
+    </p>
+    <div class="file-upload">
+        <div class="file-upload-wrap">
+            <input class="file-upload-input" type='file' title=""
+                onchange="let isjson = readURL(this); if (!isjson) $('.file-upload-input').val('')" accept=".json" />
+            <div class="drag-text">
+                <p>Drag and drop a file here</p>
+            </div>
+        </div>
+        <!-- <div class="file-upload-content">
+            <div class="image-title-wrap">
+                <button type="button" onclick="removeUpload()" class="remove-image">Remove <span
+                        class="image-title">Uploaded Image</span></button>
+            </div>
+        </div> -->
+        <button class="file-upload-btn" type="button" onclick="$('.file-upload-input').trigger('click')">
+            or upload file from disk</button>
+    </div>
+</body>
+
+</html>

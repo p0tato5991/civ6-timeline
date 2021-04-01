@@ -1,0 +1,306 @@
+@font-face {
+    font-family: "civilization";
+    src: url("civ.woff") format("woff");
+}
+@import url("https://fonts.googleapis.com/css?kit=Cn-lJt-LUxZV2ICofzrQFC41xsIlU3aRljeVp4bgN9IyVUZNXjDz66VLic5ENuM");
+@import url("https://p.typekit.net/p.css?s=1&k=rms6fiz&ht=tk&f=6808.6846&a=72391732&app=typekit&e=css");
+
+@font-face {
+    font-family: "myriad-pro";
+    src: url("https://use.typekit.net/af/1b1b1e/00000000000000000001709e/27/l?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff2"),url("https://use.typekit.net/af/1b1b1e/00000000000000000001709e/27/d?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("woff"),url("https://use.typekit.net/af/1b1b1e/00000000000000000001709e/27/a?primer=7cdcb44be4a7db8877ffa5c0007b8dd865b3bbc383831fe2ea177f62257a9191&fvd=n7&v=3") format("opentype");
+    font-display: auto;
+    font-style: normal;
+    font-weight: 700;
+}
+
+
+:root {
+    --main-theme: #dda833;
+    --main-background-theme: #ccae5a;
+
+    --secondary-theme: #3d9ee3;
+    --secondary-background-theme: #2568c4;
+}
+
+* {
+    outline: none !important;
+}
+
+body {
+    background-color: #222 !important;
+    font-family: "myriad-pro", sans-serif !important;
+    text-align: center;
+    height: 100% !important;
+}
+
+code {
+    background-color: black;
+    color: var(--main-theme) !important;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+.title {
+    margin: 20px 0 50px 0;
+    text-align: center;
+    color: var(--main-theme);
+    font-family: "myriad-pro", sans-serif;
+    z-index: 9999999999;
+}
+
+.subheading {
+    color: #ccc;
+    width: 75%;
+    margin: auto;
+    font-family: "Poppins", sans-serif;
+}
+
+.footer {
+    margin-top: 50px;
+}
+
+.footer p {
+    color: #888;
+    font-family: "Poppins", sans-serif;
+    font-size: 13px;
+    margin: 0 auto;
+}
+
+.footer p a {
+    text-decoration: none;
+    color: #00bbff;
+}
+
+.footer p a:hover {
+    text-decoration: underline;
+}
+
+#timeline {
+    background-color: var(--main-background-theme);
+    padding: 100px 50px 125px 25px;
+    margin-top: 50px;
+    width: 100%;
+    overflow-x: scroll;
+    /* white-space: nowrap; */
+    display: flex;
+    align-items: center;
+    /* justify-content: center; */
+}
+
+#timeline::-webkit-scrollbar {
+    height: 25px;
+    overflow: visible;
+}
+
+#timeline::-webkit-scrollbar-track {
+    border-radius: 10px;
+    background-color: black;
+    border: 3px solid #705d28;
+}
+
+#timeline::-webkit-scrollbar-thumb {
+    background-color: #444;
+    border: 3px solid var(--main-theme);
+    border-radius: 10px;
+}
+
+#timeline .eraDivider {
+    display: inline-block;
+    text-transform: uppercase;
+    font-family: "civilization", sans-serif;
+    font-size: 34px;
+    color: #8a7e32;
+    letter-spacing: 1px;
+    white-space: pre;
+    border-top: 2px double #8a7e32;
+    border-bottom: 2px double #8a7e32;
+    transform: rotate(-90deg);
+    margin: 0 auto !important;
+}
+
+#timeline .moment {
+    /* display: inline-block; */
+    width: 300px;
+    white-space: normal;
+    margin: 0 20px;
+    background-color: #8a7e32;
+    color: #D9CC84;
+    border-radius: 20px;
+    padding: 10px 5px;
+    text-shadow: 0 .8px 1px #706728;
+    cursor: default;
+}
+
+#timeline .moment .momentDescription {
+    width: 275px;
+}
+
+#timeline .moment .momentTitle {
+    font-size: 18px;
+    text-shadow: none;
+    color: #e0c167;
+    user-select: none;
+}
+
+#timeline .moment .momentDetails {
+    margin-top: 30px;
+}
+
+#timeline .moment .momentDetails p {
+    font-size: 14px;
+    display: inline;
+    text-shadow: none;
+}
+
+/* #timeline .moment .momentDetails:not(:last-child) {
+    border-right: 2px 
+} */
+
+#prettydropdown-select-player ul {
+    border-radius: 10px;
+    padding: 0;
+}
+
+#prettydropdown-select-player ul:not(.active) {
+    border-color: transparent;
+}
+
+#prettydropdown-select-player ul li {
+    font-family: "myriad-pro", sans-serif !important;
+    font-size: 16px;
+}
+
+#timeline-options-trigger {
+    outline: none;
+    border: 2px solid var(--main-theme);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    float: right;
+    margin-right: 20px;
+    background-color: var(--secondary-background-theme);
+    font-family: "myriad-pro", sans-serif;
+}
+
+#timeline-options-trigger:hover {
+    background-color: #368bc7;
+}
+
+#timeline-options-trigger.open {
+    background-color: #4db5ff;
+}
+
+.optionLabel {
+    font-family: "myriad-pro", sans-serif;
+    font-size: 13px;
+    color: #222;
+    user-select: none;
+}
+
+.optionLabel input {
+    margin-right: 5px;
+    border-radius: 50%;
+}
+
+
+#uploadNew {
+    margin-top: 50px;
+    font-size: 14px;
+}
+
+
+.file-upload {
+    background-color: transparent;
+    width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    border-radius: 20px;
+}
+
+.file-upload-btn {
+    width: 100%;
+    margin: 0;
+    color: black;
+    background-color: var(--secondary-theme);
+    border: none;
+    padding: 10px;
+    border-radius: 5px;
+    transition: .2s ease-in-out;
+    outline: none;
+    cursor: pointer;
+    font-family: "Poppins", sans-serif;
+}
+
+.file-upload-btn:hover {
+    background-color: var(--secondary-background-theme);
+}
+
+.file-upload-content {
+    display: none;
+    text-align: center;
+}
+
+.file-upload-input {
+    position: absolute;
+    left: 0;
+    padding: 0;
+    width: 600px;
+    height: 100%;
+    outline: none;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.file-upload-wrap {
+    margin-bottom: 20px;
+    border: 4px dashed var(--main-background-theme);
+    position: relative;
+    font-family: "Poppins", sans-serif;
+}
+
+.image-dropping, .file-upload-wrap:hover, .dragging {
+    background-color: #333;
+    border: 4px dashed var(--main-theme);
+}
+
+.image-title-wrap {
+    padding: 0 15px 15px 15px;
+    color: #222;
+}
+
+.drag-text {
+    text-align: center;
+}
+
+.drag-text p {
+    color: var(--main-theme);
+    padding: 60px 0;
+    margin: auto;
+    font-size: 24px;
+}
+
+.remove-image {
+    width: 200px;
+    margin: 0;
+    color: #fff;
+    background: #cd4535;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    border-bottom: 4px solid #b02818;
+    transition: all .2s ease;
+    outline: none;
+    font-weight: 700;
+}
+
+.remove-image:hover {
+    background: #c13b2a;
+    color: #ffffff;
+    transition: all .2s ease;
+    cursor: pointer;
+}
+
+.remove-image:active {
+    border: 0;
+    transition: all .2s ease;
+}

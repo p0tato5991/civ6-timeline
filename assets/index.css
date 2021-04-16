@@ -31,6 +31,7 @@ body {
     font-family: "myriad-pro", sans-serif !important;
     text-align: center;
     height: 100% !important;
+    overflow-x: hidden;
 }
 
 code {
@@ -116,6 +117,7 @@ code {
     border-bottom: 2px double #8a7e32;
     transform: rotate(-90deg);
     margin: 0 auto !important;
+    user-select: none;
 }
 
 #timeline .moment {
@@ -125,7 +127,7 @@ code {
     margin: 0 20px;
     background-color: #8a7e32;
     color: #D9CC84;
-    border-radius: 20px;
+    border-radius: 10px;
     padding: 10px 5px;
     text-shadow: 0 .8px 1px #706728;
     cursor: default;
@@ -152,6 +154,34 @@ code {
     text-shadow: none;
 }
 
+.moment:hover .momentTooltip {
+    display: block;
+    /* opacity: .95; */
+}
+
+.momentTooltip {
+    font-size: 13.25px;
+    padding: 7.5px 10px;
+    min-width: 150px;
+    max-width: 400px;
+    display: none;
+    position: absolute;
+    z-index: 999;
+    color: black;
+    text-shadow: none;
+    text-align: left;
+    background-color: #eee;
+    border-radius: 5px;
+    box-shadow: 
+        inset 0 0 0 3px #eee,
+        inset 0 0 0 5px #ccc;
+}
+
+.momentTooltip img {
+    border-radius: 2px;
+    margin: 0 2px;
+}
+
 /* #timeline .moment .momentDetails:not(:last-child) {
     border-right: 2px 
 } */
@@ -170,36 +200,63 @@ code {
     font-size: 16px;
 }
 
-#timeline-options-trigger {
+.timelineSettingsButton {
     outline: none;
     border: 2px solid var(--main-theme);
     border-radius: 50%;
     width: 50px;
     height: 50px;
-    float: right;
-    margin-right: 20px;
+    
     background-color: var(--secondary-background-theme);
     font-family: "myriad-pro", sans-serif;
 }
 
-#timeline-options-trigger:hover {
+.timelineSettingsButton:hover {
     background-color: #368bc7;
 }
 
-#timeline-options-trigger.open {
+.timelineSettingsButton.open {
     background-color: #4db5ff;
 }
 
+#timeline-options-trigger {
+    float: right;
+    margin-right: 20px;
+}
+
+#timeline-scrollto-trigger {
+    float: left;
+    margin-left: 20px;
+}
+
+.scrolltoErasContainerTitle {
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+.scrolltoEra {
+    cursor: pointer;
+    font-family: 'myriad-pro';
+    text-align: center;
+    padding: 5px;
+    border-radius: 10px;
+    background-color: #bbb;
+}
+.scrolltoEra:not(:first-child):not(:last-child) {
+    margin: 10px 0;
+}
+
 .optionLabel {
-    font-family: "myriad-pro", sans-serif;
-    font-size: 13px;
+    font-family: "myriad-pro";
+    font-size: 12px;
     color: #222;
     user-select: none;
 }
 
 .optionLabel input {
     margin-right: 5px;
-    border-radius: 50%;
 }
 
 

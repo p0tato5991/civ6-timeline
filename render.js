@@ -1,17 +1,19 @@
 // globals
 var optionTitles = ["tooltips", "goodyhuts", "details"];
 
+// timeline rendering
 function readFile(input) {
     if (input.files && input.files[0]) {
 
         // create FileReader
         var reader = new FileReader();
 
+
         // call function after file is read
         reader.onload = function (e) {
             try {
-                // decode result (the JSON file is base64 encoded)
-                var res = atob(e.target.result.split("base64,")[1]);
+                // decode result into Unicode (the JSON file is base64 encoded)
+                var res = b64DecodeUnicode(e.target.result.split("base64,")[1]);
 
                 // parse decoded result
                 var json = JSON.parse(res);
@@ -24,15 +26,20 @@ function readFile(input) {
                 window.localStorage.setItem("players", JSON.stringify(players));
                 window.localStorage.setItem("moments", JSON.stringify(moments));
 
-                let defaults = { goodyhuts: true, details: true, tooltips: false };
+                let options = { goodyhuts: true, details: true, tooltips: true };
                 optionTitles.map(o => {
-                    window.localStorage.setItem(o, defaults[o].toString());
+                    if (window.localStorage.getItem(o)) {
+                        options[o] = JSON.parse(window.localStorage.getItem(o));
+                    } else {
+                        window.localStorage.setItem(o, options[o].toString());
+                    }
                 });
 
                 // generate timeline
                 window.location.href = `${window.location.href}?timeline=1`;
-                generateTimeline(players, 0, moments, defaults);
-            } catch {
+                generateTimeline(players, 0, moments, options);
+            } catch (e) {
+                console.log(e)
                 // catch errors
                 new jBox('Notice', {
                     content: "Invalid file format, it must be a JSON file",
@@ -49,6 +56,16 @@ function readFile(input) {
 }
 
 function generateTimelineSettings(players, selectedPlayerID) {
+    // scroll to era
+    var scrollTo = $(`
+        <button class="timelineSettingsButton" id="timeline-scrollto-trigger" type="button" data-bs-toggle="popover">
+            <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	            viewBox="0 0 330 330" style="enable-background:new 0 0 330 330;" xml:space="preserve">
+                <path id="XMLID_29_" d="${scrollIcon}" />
+            </svg>
+        </button>
+        `)
+
     // player selection
     var playerSelect = $(`<select id="select-player" class="select-player" onchange="regenTimeline()">
         ${players.map(player => {
@@ -60,16 +77,10 @@ function generateTimelineSettings(players, selectedPlayerID) {
 
     // timeline options
     var timelineOptions = $(`
-        <button id="timeline-options-trigger" type="button" data-bs-toggle="popover">
+        <button class="timelineSettingsButton" id="timeline-options-trigger" type="button" data-bs-toggle="popover"
+        onclick="$('#timeline-options-trigger').toggleClass('open')">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
-                <path d="M24 13.616v-3.232c-1.651-.587-2.694-.752-3.219-2.019v-.001c-.527-1.271.1-2.134.847-3.707l-2.285-2.285c-1.561.742-2.433 \
-                1.375-3.707.847h-.001c-1.269-.526-1.435-1.576-2.019-3.219h-3.232c-.582 1.635-.749 2.692-2.019 \
-                3.219h-.001c-1.271.528-2.132-.098-3.707-.847l-2.285 2.285c.745 1.568 1.375 2.434.847 3.707-.527 \
-                1.271-1.584 1.438-3.219 2.02v3.232c1.632.58 2.692.749 3.219 2.019.53 1.282-.114 2.166-.847 \
-                3.707l2.285 2.286c1.562-.743 2.434-1.375 3.707-.847h.001c1.27.526 1.436 1.579 2.019 \
-                3.219h3.232c.582-1.636.75-2.69 2.027-3.222h.001c1.262-.524 2.12.101 \
-                3.698.851l2.285-2.286c-.744-1.563-1.375-2.433-.848-3.706.527-1.271 1.588-1.44 3.221-2.021zm-12 \
-                2.384c-2.209 0-4-1.791-4-4s1.791-4 4-4 4 1.791 4 4-1.791 4-4 4z"/>
+                <path d="${settingsIcon}"/>
             </svg>
         </button>
         `)
@@ -77,32 +88,74 @@ function generateTimelineSettings(players, selectedPlayerID) {
 
     // timeline settings parent
     var timelineSettingsParent;
+
+    // if timeline has not been created yet
     if ($("#timeline-settings").length == 0) {
         timelineSettingsParent = $('<div id="timeline-settings"></div>')
 
+        // append settings
         $("#app").empty()
             .append(timelineSettingsParent)
+            .append(scrollTo)
             .append(playerSelect)
             .append(timelineOptions);
 
+        // set popover html
         $("#timeline-options").attr("data-bs-content", timelineOptionsPopover);
         new bootstrap.Popover(document.getElementById("timeline-options-trigger"), {
             html: true,
             content: timelineOptionsPopover,
-            placement: "top",
+            placement: "left",
             sanitize: false,
         })
-        $("#timeline-options-trigger").on("click", function () {
-            $("#timeline-options-trigger").toggleClass("open");
-        });
+        // if timeline has already been created
     } else {
         regenTimeline();
     }
+
+    // set scroll to era div popover html
+    let scrolltohtml = `<div class="scrolltoErasContainer"><div class="scrolltoErasContainerTitle">Scroll to:</div>
+            ${Object.entries(getCurrentGameEras()).map(era => {
+        return `<div class="scrolltoEra" onclick="
+            document.getElementById('${era[0]}').scrollIntoView({
+                block: 'center',
+                inline: 'center',
+                behavior: 'smooth',
+            });
+            $('#timeline-scrollto-trigger').trigger('click');
+        ">${era[1]}</div>`
+    }).join("")}
+        </div>`
+    $("#timeline-scrollto-trigger").attr("data-bs-content", scrolltohtml);
+    let scrolltoPopover = new bootstrap.Popover(document.getElementById("timeline-scrollto-trigger"), {
+        html: true,
+        content: scrolltohtml,
+        placement: "right",
+        sanitize: false,
+        trigger: 'focus',
+    });
+
+    // set scroll to era div dynamic classes
+    let scrolltoTrigger = $("#timeline-scrollto-trigger");
+    scrolltoTrigger.on('click', function () {
+        if (!scrolltoTrigger.hasClass("open")) {
+            $("#timeline-scrollto-trigger").addClass("open");
+        } else {
+            scrolltoPopover.dispose();
+            scrolltoTrigger.removeClass("open")
+        }
+    });
+
+    $(document).on('click', function (e) {
+        let target = $(e.target);
+
+        if (scrolltoTrigger.hasClass('open') && !target.closest("#timeline-scrollto-trigger").length) {
+            scrolltoTrigger.removeClass('open');
+        }
+    });
 }
 
 function regenTimelineSettings() {
-
-
     // get players and moments
     let players = JSON.parse(window.localStorage.getItem("players"));
     let moments = JSON.parse(window.localStorage.getItem("moments"));
@@ -134,47 +187,6 @@ function regenTimeline() {
     generateTimeline(players, selectedPlayer, moments, options);
 }
 
-function getTimelineOptions() {
-    let options = {};
-
-    optionTitles.map(o => {
-        options[o] = JSON.parse(window.localStorage.getItem(o));
-    });
-
-    return options;
-}
-
-function saveOption(option) {
-    window.localStorage.setItem(option, $(`input[value="${option}"]:checked`).length > 0);
-}
-
-function getTimelineOptionsCheckboxes() {
-    // get options
-    let options = {};
-    optionTitles.map(o => {
-        options[o] = JSON.parse(window.localStorage.getItem(o));
-    });
-
-    console.log(options)
-
-    // return html
-    return `<form onchange="[${optionTitles.map(o => "'" + o + "'").join(",")}].map(o => {
-        saveOption(o);
-    }); regenTimelineSettings();" id="timeline-options">
-        <label class="optionLabel">
-            <input type="checkbox" value="tooltips" ${options["tooltips"] ? "checked" : ""}>
-            Show tooltips</label>
-        
-        <label class="optionLabel">
-            <input type="checkbox" value="goodyhuts" ${options["goodyhuts"] ? "checked" : ""}>
-            Show goody hut triggered moments</label>
-        
-        <label class="optionLabel">
-            <input type="checkbox" value="details" ${options["details"] ? "checked" : ""}>
-            Show moment details</label>
-        </form>`;
-}
-
 function generateTimeline(players, selectedPlayerID, moments, options) {
     try {
         // empty app children if no timeline, and show loading spinner
@@ -203,19 +215,19 @@ function generateTimeline(players, selectedPlayerID, moments, options) {
         let current;
         moments.forEach(moment => {
             if (current != moment.GameEra) {
-                timeline.append(`<div class="eraDivider">${getEra(moment.GameEra)}  Era</div>`)
+                timeline.append(`<div class="eraDivider" id="${moment.GameEra}_DIV">${getEra(moment.GameEra)}  Era</div>`)
             }
             current = moment.GameEra;
 
             timeline.append(`<div id="moment_${moment.Id}" class="moment">
                 <p class="momentTitle">${formatMoment(moment.Type)}</p>
                 <p class="momentDescription">${moment.InstanceDescription}</p>
+                ${options.tooltips ? `<div class="momentTooltip">${formatMomentTooltip(moment.Type)}</div>` : ""}
                 ${options.details ? `<div class="momentDetails">
                     <p>Turn ${moment.Turn.toString()}</p>
                     <p> | ${getEra(moment.GameEra)} Era</p>
                     ${moment.EraScore > 0 ? `<p> | +${moment.EraScore.toString()} Era Score</p>` : ""}
                 </div>` : ""}
-                
             </div>`);
         });
 
@@ -233,12 +245,28 @@ function generateTimeline(players, selectedPlayerID, moments, options) {
 
         // tooltips if option is on
         if (options.tooltips) {
+            function createTooltip(id) {
+                let moment = document.getElementById(`moment_${id}`);
+
+                let tooltip = document.querySelector(`#moment_${id} .momentTooltip`);
+
+                function fn(e) {
+                    tooltip.style.top = `${e.pageY + 10}px`;
+                    tooltip.style.left = `${e.pageX + 20}px`;
+
+                    let rectangle = tooltip.getBoundingClientRect();
+
+                    if ((rectangle.x + rectangle.width) > window.innerWidth) {
+                        tooltip.style.left = `${e.pageX - rectangle.width * 1.5}px`;
+                    }
+                }
+
+                moment.addEventListener("mouseenter", fn);
+                moment.addEventListener("mousemove", fn);
+            }
+
             moments.forEach(moment => {
-                $(`#moment_${moment.Id}`).jBox("Mouse", {
-                    content: formatMoment(moment.Type),
-                    fade: false,
-                    animation: "zoomIn"
-                });
+                createTooltip(moment.Id, moment.Type);
             });
         }
 
@@ -246,7 +274,14 @@ function generateTimeline(players, selectedPlayerID, moments, options) {
         function scrollHorizontally(e) {
             e = window.event || e;
             var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
-            document.getElementById('timeline').scrollLeft -= (delta * 300);
+            let timesRun = 0;
+            var interval = setInterval(function () {
+                timesRun++;
+                if (timesRun == 30) {
+                    clearInterval(interval);
+                }
+                document.getElementById('timeline').scrollLeft -= (delta * 20);
+            }, 2.5);
             e.preventDefault();
         }
         if (document.getElementById('timeline').addEventListener) {
@@ -276,4 +311,72 @@ function generateTimeline(players, selectedPlayerID, moments, options) {
 
         return { failed: true };
     }
+}
+
+
+
+////////////////////
+// HELPER FUNCTIONS
+////////////////////
+function b64DecodeUnicode(str) {
+    // going backwards: from bytestream, to percent-encoding, to original string.
+    return decodeURIComponent(atob(str).split('').map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+}
+
+function saveOption(option) {
+    // save option to localstorage
+    window.localStorage.setItem(option, $(`input[value="${option}"]:checked`).length > 0);
+}
+
+function getTimelineOptions() {
+    // get options from localstorage
+    let options = {};
+
+    optionTitles.map(o => {
+        options[o] = JSON.parse(window.localStorage.getItem(o));
+    });
+
+    return options;
+}
+
+function getTimelineOptionsCheckboxes() {
+    // get options
+    let options = {};
+    optionTitles.map(o => {
+        options[o] = JSON.parse(window.localStorage.getItem(o));
+    });
+
+    // return html
+    return `<form onchange="[${optionTitles.map(o => "'" + o + "'").join(",")}].map(o => {
+        saveOption(o);
+    }); regenTimelineSettings();" id="timeline-options">
+        <label class="optionLabel">
+            <input type="checkbox" value="tooltips" ${options["tooltips"] ? "checked" : ""}>
+            Show tooltips</label>
+        
+        <label class="optionLabel">
+            <input type="checkbox" value="goodyhuts" ${options["goodyhuts"] ? "checked" : ""}>
+            Show tribal village moments</label>
+        
+        <label class="optionLabel">
+            <input type="checkbox" value="details" ${options["details"] ? "checked" : ""}>
+            Show moment details</label>
+        </form>`;
+}
+
+function getCurrentGameEras() {
+    let moments = JSON.parse(window.localStorage.getItem("moments"));
+
+    if (!moments) return false;
+
+    let eras = {};
+    moments.forEach(moment => {
+        if (!eras[moment.GameEra]) {
+            eras[moment.GameEra + "_DIV"] = getEra(moment.GameEra) + " Era";
+        }
+    });
+
+    return eras;
 }

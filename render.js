@@ -46,7 +46,7 @@ function readFile(input) {
                     color: "red"
                 });
 
-                return false;
+                // return false;
             }
         };
 
@@ -59,12 +59,20 @@ function generateTimelineSettings(players, selectedPlayerID) {
     // scroll to era
     var scrollTo = $(`
         <button class="timelineSettingsButton" id="timeline-scrollto-trigger" type="button" data-bs-toggle="popover">
-            <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	            viewBox="0 0 330 330" style="enable-background:new 0 0 330 330;" xml:space="preserve">
-                <path id="XMLID_29_" d="${scrollIcon}" />
+            <svg x="0px" y="0px" viewBox="0 0 330 330">
+                <path d="${scrollIcon}" />
             </svg>
         </button>
-        `)
+        `);
+
+    // search moments
+    var search = $(`
+        <button class="timelineSettingsButton" id="timeline-search-trigger" type="button" data-bs-toggle="popover">
+            <svg x="0px" y="0px" viewBox="0 0 410 410">
+                <path d="${searchIcon}" />
+            </svg>
+        </button>
+    `);
 
     // player selection
     var playerSelect = $(`<select id="select-player" class="select-player" onchange="regenTimeline()">
@@ -97,24 +105,27 @@ function generateTimelineSettings(players, selectedPlayerID) {
         $("#app").empty()
             .append(timelineSettingsParent)
             .append(scrollTo)
+            .append(search)
             .append(playerSelect)
             .append(timelineOptions);
 
-        // set popover html
+        // set options popover html
         $("#timeline-options").attr("data-bs-content", timelineOptionsPopover);
         new bootstrap.Popover(document.getElementById("timeline-options-trigger"), {
             html: true,
             content: timelineOptionsPopover,
             placement: "left",
             sanitize: false,
-        })
-        // if timeline has already been created
+        });
     } else {
+        // if timeline has already been created
         regenTimeline();
     }
 
+    // SCROLL TO ERA FEATURE
     // set scroll to era div popover html
-    let scrolltohtml = `<div class="scrolltoErasContainer"><div class="scrolltoErasContainerTitle">Scroll to:</div>
+    let scrolltohtml = `<div class="scrolltoErasContainer">
+            <div class="popoverTitle">Scroll to:</div>
             ${Object.entries(getCurrentGameEras()).map(era => {
         return `<div class="scrolltoEra" onclick="
             document.getElementById('${era[0]}').scrollIntoView({
@@ -125,23 +136,20 @@ function generateTimelineSettings(players, selectedPlayerID) {
             $('#timeline-scrollto-trigger').trigger('click');
         ">${era[1]}</div>`
     }).join("")}
-        </div>`
+        </div>`;
     $("#timeline-scrollto-trigger").attr("data-bs-content", scrolltohtml);
     let scrolltoPopover = new bootstrap.Popover(document.getElementById("timeline-scrollto-trigger"), {
         html: true,
         content: scrolltohtml,
         placement: "right",
         sanitize: false,
-        trigger: 'focus',
     });
-
     // set scroll to era div dynamic classes
     let scrolltoTrigger = $("#timeline-scrollto-trigger");
     scrolltoTrigger.on('click', function () {
         if (!scrolltoTrigger.hasClass("open")) {
             $("#timeline-scrollto-trigger").addClass("open");
         } else {
-            scrolltoPopover.dispose();
             scrolltoTrigger.removeClass("open")
         }
     });
@@ -151,8 +159,13 @@ function generateTimelineSettings(players, selectedPlayerID) {
 
         if (scrolltoTrigger.hasClass('open') && !target.closest("#timeline-scrollto-trigger").length) {
             scrolltoTrigger.removeClass('open');
+            scrolltoPopover.hide();
         }
     });
+
+
+    // SEARCH FOR MOMENTS FEATURE
+    console.log(getTimelineSearches());
 }
 
 function regenTimelineSettings() {
@@ -297,9 +310,9 @@ function generateTimeline(players, selectedPlayerID, moments, options) {
             hoverIntent: -1,
         });
     } catch (e) {
+        // catch errors
         console.log(e);
 
-        // catch errors
         new jBox("Notice", {
             color: "red",
             content: "Encountered an error while attempting to load timeline"
@@ -341,6 +354,19 @@ function getTimelineOptions() {
     return options;
 }
 
+function getCurrentGameEras() {
+    let moments = JSON.parse(window.localStorage.getItem("moments"));
+
+    let eras = {};
+    moments.forEach(moment => {
+        if (!eras[moment.GameEra]) {
+            eras[moment.GameEra + "_DIV"] = getEra(moment.GameEra) + " Era";
+        }
+    });
+
+    return eras;
+}
+
 function getTimelineOptionsCheckboxes() {
     // get options
     let options = {};
@@ -352,6 +378,7 @@ function getTimelineOptionsCheckboxes() {
     return `<form onchange="[${optionTitles.map(o => "'" + o + "'").join(",")}].map(o => {
         saveOption(o);
     }); regenTimelineSettings();" id="timeline-options">
+        <div class="popoverTitle">Settings</div>
         <label class="optionLabel">
             <input type="checkbox" value="tooltips" ${options["tooltips"] ? "checked" : ""}>
             Show tooltips</label>
@@ -366,17 +393,22 @@ function getTimelineOptionsCheckboxes() {
         </form>`;
 }
 
-function getCurrentGameEras() {
+function getTimelineSearches() {
     let moments = JSON.parse(window.localStorage.getItem("moments"));
 
-    if (!moments) return false;
-
-    let eras = {};
+    let searches = {
+        "ERA_SCORE_1": "+1 Era Score Moment",
+        "ERA_SCORE_2": "+2 Era Score Moment",
+        "ERA_SCORE_3": "+3 Era Score Moment",
+        "ERA_SCORE_4": "+4 Era Score Moment",
+        "ERA_SCORE_5": "+5 Era Score Moment",
+    };
     moments.forEach(moment => {
-        if (!eras[moment.GameEra]) {
-            eras[moment.GameEra + "_DIV"] = getEra(moment.GameEra) + " Era";
+        if (!searches[moment.Type]) {
+            searches[moment.Type] = formatMoment(moment.Type);
         }
     });
 
-    return eras;
+    return searches;
 }
+

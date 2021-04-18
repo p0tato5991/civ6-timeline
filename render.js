@@ -1,5 +1,7 @@
 // globals
 var optionTitles = ["tooltips", "goodyhuts", "details"];
+var statisticsModal = null;
+var scrolltoDivPopover = null;
 
 // timeline rendering
 function readFile(input) {
@@ -65,17 +67,8 @@ function generateTimelineSettings(players, selectedPlayerID) {
         </button>
         `);
 
-    // search moments
-    var search = $(`
-        <button class="timelineSettingsButton" id="timeline-search-trigger" type="button" data-bs-toggle="popover">
-            <svg x="0px" y="0px" viewBox="0 0 410 410">
-                <path d="${searchIcon}" />
-            </svg>
-        </button>
-    `);
-
     // player selection
-    var playerSelect = $(`<select id="select-player" class="select-player" onchange="regenTimeline()">
+    var playerSelect = $(`<select id="select-player" class="select-player" onchange="regenTimeline(); setScrolltoPopover();">
         ${players.map(player => {
         return `<option value="${"KEY_" + player.Id}" ${player.Id == selectedPlayerID ? "selected" : ""}>
             ${getCivName(player.Civilization) + (player.Id === 0 ? " (You)" : "")}
@@ -87,7 +80,7 @@ function generateTimelineSettings(players, selectedPlayerID) {
     var timelineOptions = $(`
         <button class="timelineSettingsButton" id="timeline-options-trigger" type="button" data-bs-toggle="popover"
         onclick="$('#timeline-options-trigger').toggleClass('open')">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+            <svg width="24" height="24" viewBox="0 0 24 24">
                 <path d="${settingsIcon}"/>
             </svg>
         </button>
@@ -105,9 +98,8 @@ function generateTimelineSettings(players, selectedPlayerID) {
         $("#app").empty()
             .append(timelineSettingsParent)
             .append(scrollTo)
-            .append(search)
             .append(playerSelect)
-            .append(timelineOptions);
+            .append(timelineOptions)
 
         // set options popover html
         $("#timeline-options").attr("data-bs-content", timelineOptionsPopover);
@@ -122,29 +114,8 @@ function generateTimelineSettings(players, selectedPlayerID) {
         regenTimeline();
     }
 
-    // SCROLL TO ERA FEATURE
-    // set scroll to era div popover html
-    let scrolltohtml = `<div class="scrolltoErasContainer">
-            <div class="popoverTitle">Scroll to:</div>
-            ${Object.entries(getCurrentGameEras()).map(era => {
-        return `<div class="scrolltoEra" onclick="
-            document.getElementById('${era[0]}').scrollIntoView({
-                block: 'center',
-                inline: 'center',
-                behavior: 'smooth',
-            });
-            $('#timeline-scrollto-trigger').trigger('click');
-        ">${era[1]}</div>`
-    }).join("")}
-        </div>`;
-    $("#timeline-scrollto-trigger").attr("data-bs-content", scrolltohtml);
-    let scrolltoPopover = new bootstrap.Popover(document.getElementById("timeline-scrollto-trigger"), {
-        html: true,
-        content: scrolltohtml,
-        placement: "right",
-        sanitize: false,
-    });
-    // set scroll to era div dynamic classes
+    // set scrollto era div popover
+    setScrolltoPopover();
     let scrolltoTrigger = $("#timeline-scrollto-trigger");
     scrolltoTrigger.on('click', function () {
         if (!scrolltoTrigger.hasClass("open")) {
@@ -153,19 +124,47 @@ function generateTimelineSettings(players, selectedPlayerID) {
             scrolltoTrigger.removeClass("open")
         }
     });
+}
 
-    $(document).on('click', function (e) {
-        let target = $(e.target);
+function scrolltoDivDocumentClickFunc(e) {
+    let target = $(e.target);
 
-        if (scrolltoTrigger.hasClass('open') && !target.closest("#timeline-scrollto-trigger").length) {
-            scrolltoTrigger.removeClass('open');
-            scrolltoPopover.hide();
-        }
+    let scrolltoTrigger = $("#timeline-scrollto-trigger");
+    if (scrolltoTrigger.hasClass('open') && !target.closest("#timeline-scrollto-trigger").length) {
+        scrolltoTrigger.removeClass('open');
+        scrolltoDivPopover.hide();
+    }
+}
+
+function setScrolltoPopover() {
+    if (scrolltoDivPopover) {
+        // dispose old popover if it exists
+        scrolltoDivPopover.dispose();
+    }
+
+    // create html
+    let scrolltohtml = `<div class="scrolltoErasContainer">
+            <div class="popoverTitle">Scroll to:</div>
+            ${Object.entries(getCurrentGameEras(parseInt($("#select-player").val().split("_")[1]))).map(era => {
+        return `<div class="scrolltoEra" onclick="
+            document.getElementById('${era[0]}_DIV').scrollIntoView({
+                block: 'center',
+                inline: 'center',
+                behavior: 'smooth',
+            });
+            $('#timeline-scrollto-trigger').trigger('click');
+        ">${era[1]}</div>`
+    }).join("")}
+        </div>`;
+
+    // create popover and set to global var
+    $("#timeline-scrollto-trigger").attr("data-bs-content", scrolltohtml);
+    scrolltoDivPopover = new bootstrap.Popover(document.getElementById("timeline-scrollto-trigger"), {
+        html: true,
+        content: scrolltohtml,
+        placement: "right",
+        sanitize: false,
     });
-
-
-    // SEARCH FOR MOMENTS FEATURE
-    console.log(getTimelineSearches());
 }
 
 function regenTimelineSettings() {
@@ -179,6 +178,8 @@ function regenTimelineSettings() {
     var timelineOptionsPopover = getTimelineOptionsCheckboxes();
 
     $("#timeline-options-trigger").attr("data-bs-content", timelineOptionsPopover);
+
+    setScrolltoPopover();
 
     generateTimeline(players, selectedPlayer, moments, options);
 }
@@ -251,10 +252,29 @@ function generateTimeline(players, selectedPlayerID, moments, options) {
             $(`#app`).append(timeline);
         }
 
-        if ($("#uploadNew").length == 0)
+        // add civ history info and upload new timeline buttons
+        if ($("#uploadNew").length == 0) {
+            $("#app").append($(`
+                <button class="btn btn-info" id="statistics">Civilization History Info</button>
+            `));
+
             $("#app").append($(`<button class="btn btn-warning" id="uploadNew" onclick="window.location.href=window.location.pathname">
                 Upload another timeline
             </button>`));
+        } else {
+            statisticsModal.destroy();
+        }
+
+        // civ history info modal
+        statisticsModal = new jBox('Modal', {
+            attach: "#statistics",
+            width: 400,
+            title: `Civilization History Info - ${getCivName(getCivNameByID(parseInt($("#select-player").val().split("_")[1])).Civilization)}`,
+            draggable: "title",
+            content: getStats(),
+            overlay: false,
+            offset: { y: -35 },
+        });
 
         // tooltips if option is on
         if (options.tooltips) {
@@ -282,7 +302,6 @@ function generateTimeline(players, selectedPlayerID, moments, options) {
                 createTooltip(moment.Id, moment.Type);
             });
         }
-
         // add timeline horizontal scrolling
         function scrollHorizontally(e) {
             e = window.event || e;
@@ -304,13 +323,11 @@ function generateTimeline(players, selectedPlayerID, moments, options) {
             document.getElementById('timeline').attachEvent("onmousewheel", scrollHorizontally);
         }
 
-
         // initialize player selection dropdown
-        $("select").prettyDropdown({
+        $("#select-player").prettyDropdown({
             hoverIntent: -1,
         });
     } catch (e) {
-        // catch errors
         console.log(e);
 
         new jBox("Notice", {
@@ -328,9 +345,9 @@ function generateTimeline(players, selectedPlayerID, moments, options) {
 
 
 
-////////////////////
+////////////////////////////////
 // HELPER FUNCTIONS
-////////////////////
+////////////////////////////////
 function b64DecodeUnicode(str) {
     // going backwards: from bytestream, to percent-encoding, to original string.
     return decodeURIComponent(atob(str).split('').map(function (c) {
@@ -352,19 +369,6 @@ function getTimelineOptions() {
     });
 
     return options;
-}
-
-function getCurrentGameEras() {
-    let moments = JSON.parse(window.localStorage.getItem("moments"));
-
-    let eras = {};
-    moments.forEach(moment => {
-        if (!eras[moment.GameEra]) {
-            eras[moment.GameEra + "_DIV"] = getEra(moment.GameEra) + " Era";
-        }
-    });
-
-    return eras;
 }
 
 function getTimelineOptionsCheckboxes() {
@@ -393,22 +397,157 @@ function getTimelineOptionsCheckboxes() {
         </form>`;
 }
 
-function getTimelineSearches() {
-    let moments = JSON.parse(window.localStorage.getItem("moments"));
+function highlightMoment(id) {
+    setTimeout(function () {
+        $(`#moment_${id}`).addClass("highlighted");
+    }, 250);
 
-    let searches = {
-        "ERA_SCORE_1": "+1 Era Score Moment",
-        "ERA_SCORE_2": "+2 Era Score Moment",
-        "ERA_SCORE_3": "+3 Era Score Moment",
-        "ERA_SCORE_4": "+4 Era Score Moment",
-        "ERA_SCORE_5": "+5 Era Score Moment",
-    };
+    setTimeout(function () {
+        $(`#moment_${id}`).removeClass("highlighted");
+    }, 1250);
+}
+
+function getStats() {
+    // moments and players
+    let selectedPlayerID = parseInt($("#select-player").val().split("_")[1]);
+    let allPlayers = JSON.parse(window.localStorage.getItem("players"));
+    let selectedPlayer = allPlayers.find(p => p.Id == selectedPlayerID);
+
+    let allMoments = JSON.parse(window.localStorage.getItem("moments"));
+    let moments = allMoments.filter(m => m.ActingPlayer === selectedPlayerID);
+
+    // statistics vars
+    let totalScore = 0;
+    let firstCiv = null;
+    let defeatedBy = null;
+    let defeatedCivs = [];
+    let darkAges = 0;
+    let goldenAges = 0;
+    let bestEraData = {};
+    let firstNaturalWonder = null;
+    let firstWorldWonder = null;
+    let totalWorldWonders = 0;
+    let totalGreatPeople = 0;
+
+    // set eras
+    Object.keys(getCurrentGameEras(selectedPlayerID)).forEach(era => bestEraData[era] = 0);
+
+    // loop through selected player's moments
     moments.forEach(moment => {
-        if (!searches[moment.Type]) {
-            searches[moment.Type] = formatMoment(moment.Type);
+        // add era score to total
+        totalScore += moment.EraScore;
+
+        // add era score to era
+        bestEraData[moment.GameEra] = bestEraData[moment.GameEra] + moment.EraScore;
+
+        // check for the first civ the player has met
+        if (moment.Type === "MOMENT_PLAYER_MET_MAJOR" && !firstCiv) {
+            firstCiv = {
+                Id: moment.Id,
+                name: moment.InstanceDescription.split("the people of")[1].trim().slice(0, -1)
+            }
+        }
+
+        // check for the first natural wonder the player has found
+        if (!firstNaturalWonder) {
+            if (moment.Type === "MOMENT_FIND_NATURAL_WONDER_FIRST_IN_WORLD") {
+                firstNaturalWonder = {
+                    Id: moment.Id,
+                    name: moment.InstanceDescription.split("set eyes on")[1].trim().slice(0, -1)
+                }
+            } else if (moment.Type === "MOMENT_FIND_NATURAL_WONDER") {
+                firstNaturalWonder === {
+                    Id: moment.Id,
+                    name: moment.InstanceDescription.split("the majesty of")[1].trim().slice(0, -1)
+                }
+            }
+        }
+
+        // check for the first world wonder the player has built
+        if (moment.Type.includes("MOMENT_BUILDING_CONSTRUCTED") && moment.Type.includes("ERA_WONDER")) {
+            if (!firstWorldWonder) {
+                firstWorldWonder = {
+                    Id: moment.Id,
+                    name: moment.InstanceDescription.split("Standing in the")[1].split(", the citizens of")[0].trim()
+                }
+            }
+            totalWorldWonders++;
+        }
+
+        // add great person to total
+        if (moment.Type.includes("MOMENT_GREAT_PERSON")) {
+            totalGreatPeople++;
+        }
+
+        // add dark/golden/heroic ages to total
+        if (moment.Type === "MOMENT_GAME_ERA_STARTED_WITH_DARK_AGE") {
+            darkAges++;
+        } else if (moment.Type === "MOMENT_GAME_ERA_STARTED_WITH_HEROIC_AGE" || moment.Type === "MOMENT_GAME_ERA_STARTED_WITH_GOLDEN_AGE") {
+            goldenAges++;
+        }
+
+        // check if the selected player defeated another civ
+        if (moment.Type.endsWith("PLAYER_DEFEATED")) {
+            defeatedCivs.push({
+                Id: moment.Id,
+                name: allPlayers.find(p => p.Id === moment.ExtraData[0].Value).CivilizationShortDescription
+            })
         }
     });
 
-    return searches;
-}
+    // loop through all game moments
+    allMoments.forEach(moment => {
+        if (moment.Type.endsWith("PLAYER_DEFEATED")) {
+            // check if the selected player has been defeated
+            if (moment.InstanceDescription === `${selectedPlayer.CivilizationShortDescription} will not stand the test of time.`) {
+                defeatedBy = allPlayers.find(p => p.Id === moment.ActingPlayer).CivilizationShortDescription;
+            }
+        }
+    });
 
+    // function to generate the scrollIntoView function
+    function generateScrollJS(id) {
+        return `document.getElementById('moment_${id}').scrollIntoView({
+            block: 'center',
+            inline: 'center',
+            behavior: 'smooth',
+        }); statisticsModal.close(); highlightMoment(${id});`;
+    }
+
+    // return html 
+    return `
+    <div class="statisticsDiv">
+        <div class="group">
+            <div class="stat">First civilization met: ${firstCiv ?
+            `<span onclick="${generateScrollJS(firstCiv.Id)}">${firstCiv.name}</span>` : "None"}</div>
+            
+            <div class="stat">First Natural Wonder found: ${firstNaturalWonder ?
+            `<span onclick="${generateScrollJS(firstNaturalWonder.Id)}">${firstNaturalWonder.name}</span>` : "None"}</div>
+            
+            <div class="stat">First World Wonder built: ${firstWorldWonder ?
+            `<span onclick="${generateScrollJS(firstWorldWonder.Id)}">${firstWorldWonder.name}</span>` : "None"}</div>
+            
+            <div class="stat">Total World Wonders built: <span>${totalWorldWonders}</span></div>
+            <div class="stat">Total Great People Recruited: <span>${totalGreatPeople}</span></div>
+        </div>
+        <div class="group">
+            <div class="stat">Golden/Heroic Ages: <span>${goldenAges}</span></div>
+            <div class="stat">Dark Ages: <span>${darkAges}</span></div>
+
+            ${defeatedCivs.length > 0 ? `<div class="stat">Defeated Civs: 
+                ${defeatedCivs.map(c => `<span onclick="${generateScrollJS(c.Id)}">${c.name}</span>`).join(", ")}</div>` : ""}
+            ${defeatedBy ? `<div class="stat">Defeated By: <span>${defeatedBy}</span></div>` : ""}
+        </div>
+
+        <div class="group mt-4">
+            <div class="stat">Total era score: <span>${totalScore}</span></div>
+
+            <div class="stat allEras">
+                ${Object.entries(bestEraData).map(era => {
+                return `${getEra(era[0])} Era: <span>${era[1]}</span>`;
+            }).join("<br />")}
+            </div>
+            <div style="font-size: 11px;" class="mt-2">Era score totals do not include dedications.<br/></div>
+        </div>
+    </div>`;
+}

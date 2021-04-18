@@ -1,4 +1,14 @@
 $(document).ready(function () {
+    window.addEventListener("click", function (e) {
+        let target = $(e.target);
+
+        let scrolltoTrigger = $("#timeline-scrollto-trigger");
+        if (scrolltoTrigger.hasClass('open') && !target.closest("#timeline-scrollto-trigger").length) {
+            scrolltoTrigger.removeClass('open');
+            scrolltoDivPopover.hide();
+        }
+    })
+
     let params = new URLSearchParams(window.location.search);
 
     if (params.get("timeline")) {

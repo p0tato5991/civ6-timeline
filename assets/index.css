@@ -130,6 +130,12 @@ code {
     text-shadow: 0 .8px 1px #706728;
     box-shadow: 0 0 5px .5px #4a441b;
     cursor: default;
+    transition: .2s ease-in-out;
+}
+
+#timeline .moment.highlighted {
+    background-color: #b8a246;
+    box-shadow: none;
 }
 
 #timeline .moment .momentDescription {
@@ -165,7 +171,7 @@ code {
     max-width: 400px;
     display: none;
     position: absolute;
-    z-index: 999;
+    z-index: 1;
     color: black;
     text-shadow: none;
     text-align: left;
@@ -225,9 +231,6 @@ code {
 #timeline-options-trigger {
     float: right;
     margin-right: 20px;
-
-    /* to simulate another button to the left */
-    margin-left: 70px;
 }
 
 .optionLabel {
@@ -262,19 +265,58 @@ code {
     background-color: #aaa;
 }
 
-#timeline-search-trigger {
-    float: left;
-    margin-left: 20px;
-}
-#timeline-search-trigger svg {
-    margin-top: 1px;
-    margin-left: 2px;
+.searchPopover {
+    z-index: 0 !important;
 }
 
 
-#uploadNew {
+#uploadNew, #statistics {
     margin-top: 50px;
     font-size: 14px;
+}
+#statistics {
+    margin-right: 20px;
+}
+
+.statisticsDiv {
+    font-family: 'Poppins', sans-serif;
+    font-size: 15px;
+}
+
+.group:not(:last-of-type) {
+    margin-bottom: 10px;
+}
+.stat {
+    font-size: 13px;
+}
+.stat span {
+    font-family: 'Poppins-bold', sans-serif !important;
+}
+.stat span[onclick] {
+    cursor: pointer;
+    text-decoration: underline #bbb;
+}
+
+.collapseTrigger {
+    cursor: pointer;
+}
+.collapseTrigger::after {
+    content: '';
+    display: inline-block;
+    margin-left: 10px;
+    margin-bottom: 1px;
+    transition: .2s ease-in-out;
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid grey;
+}
+.collapseTrigger:not(.collapsed)::after {
+    transform: rotate(-180deg);
+}
+.allEras, .allEras {
+    font-size: 12px !important;
 }
 
 

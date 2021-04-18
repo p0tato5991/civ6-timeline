@@ -4,10 +4,29 @@ function getCivName(civ) {
     return civ.toLowerCase().split(" ").map(c => c[0].toUpperCase() + c.slice(1)).join(" ");
 }
 
+function getCivNameByID(id) {
+    let civs = JSON.parse(window.localStorage.getItem("players"));
+
+    return civs.find(c => c.Id === id);
+}
+
 function getEra(era) {
     era = era.split("ERA_")[1].toLowerCase();
 
     return era[0].toUpperCase() + era.slice(1);
+}
+
+function getCurrentGameEras(civID) {
+    let moments = JSON.parse(window.localStorage.getItem("moments")).filter(m => m.ActingPlayer === civID);
+
+    let eras = {};
+    moments.forEach(moment => {
+        if (!eras[moment.GameEra]) {
+            eras[moment.GameEra] = getEra(moment.GameEra) + " Era";
+        }
+    });
+
+    return eras;
 }
 
 function formatMoment(moment) {
@@ -158,7 +177,7 @@ const tooltips = {
 
     "DISTRICT_CONSTRUCTED_HIGH_ADJACENCY_COMMERCIAL_HUB": "You have completed your civilization's first Commercial Hub with a starting adjacency bonus of 4 [ICON_GOLD] Gold or higher. | Created High Adjacency Commercial Hub",
 
-    "DISTRICT_CONSTRUCTED_HIGH_ADJACENCY_HARBOR": "You have completed your civilization's first Campus with a starting adjacency bonus of 4 [ICON_GOLD] Gold or higher. | Created High Adjacency Harbor",
+    "DISTRICT_CONSTRUCTED_HIGH_ADJACENCY_HARBOR": "You have completed your civilization's first Harbor with a starting adjacency bonus of 4 [ICON_GOLD] Gold or higher. | Created High Adjacency Harbor",
 
     "DISTRICT_CONSTRUCTED_HIGH_ADJACENCY_HOLY_SITE": "You have completed your civilization's first Holy Site with a starting adjacency bonus of 3 [ICON_FAITH] Faith or higher. | Created High Adjacency Holy Site",
 

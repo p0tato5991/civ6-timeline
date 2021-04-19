@@ -425,8 +425,9 @@ function getStats() {
     let goldenAges = 0;
     let bestEraData = {};
     let firstNaturalWonder = null;
-    let firstWorldWonder = null;
-    let totalWorldWonders = 0;
+    let worldWonders = [];
+    let moreWorldWonders = 0;
+    // let totalWorldWonders = 0;
     let totalGreatPeople = 0;
 
     // set eras
@@ -465,13 +466,14 @@ function getStats() {
 
         // check for the first world wonder the player has built
         if (moment.Type.includes("MOMENT_BUILDING_CONSTRUCTED") && moment.Type.includes("ERA_WONDER")) {
-            if (!firstWorldWonder) {
-                firstWorldWonder = {
-                    Id: moment.Id,
-                    name: moment.InstanceDescription.split("Standing in the")[1].split(", the citizens of")[0].trim()
-                }
-            }
-            totalWorldWonders++;
+            // if (worldWonders.length < 6) {
+            worldWonders.push({
+                Id: moment.Id,
+                name: moment.InstanceDescription.split("Standing in the")[1].split(", the citizens of")[0].trim()
+            });
+            // } else {
+            //     moreWorldWonders++;
+            // }
         }
 
         // add great person to total
@@ -514,6 +516,9 @@ function getStats() {
         }); statisticsModal.close(); highlightMoment(${id});`;
     }
 
+    // world wonders HTML
+    var wwHTML = worldWonders.map(ww => `<span onclick="${generateScrollJS(ww.Id)}">${ww.name}</span>`).join(", ");
+
     // return html 
     return `
     <div class="statisticsDiv">
@@ -524,10 +529,21 @@ function getStats() {
             <div class="stat">First Natural Wonder found: ${firstNaturalWonder ?
             `<span onclick="${generateScrollJS(firstNaturalWonder.Id)}">${firstNaturalWonder.name}</span>` : "None"}</div>
             
-            <div class="stat">First World Wonder built: ${firstWorldWonder ?
-            `<span onclick="${generateScrollJS(firstWorldWonder.Id)}">${firstWorldWonder.name}</span>` : "None"}</div>
+            <div class="stat">World Wonders built:
+                ${worldWonders.length > 0 ? `
+                    <div id="showHideToggle" class="hidden" onclick="
+                        if ($('#showHideToggle').hasClass('hidden')) {
+                            let wwHTML = \`${wwHTML}\`
+                            $('#showHide').html(wwHTML);
+                            $('#showHideToggle').removeClass('hidden').html('Show less');
+                        } else {
+                            $('#showHide').html('');
+                            $('#showHideToggle').addClass('hidden').html('Show all');
+                        }
+                    ">Show all</div>` : "None"}
+                    <div id="showHide"></div>
+            </div>
             
-            <div class="stat">Total World Wonders built: <span>${totalWorldWonders}</span></div>
             <div class="stat">Total Great People Recruited: <span>${totalGreatPeople}</span></div>
         </div>
         <div class="group">

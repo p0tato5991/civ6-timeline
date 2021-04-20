@@ -456,8 +456,9 @@ function getStats() {
                     Id: moment.Id,
                     name: moment.InstanceDescription.split("set eyes on")[1].trim().slice(0, -1)
                 }
-            } else if (moment.Type === "MOMENT_FIND_NATURAL_WONDER") {
-                firstNaturalWonder === {
+            }
+            if (moment.Type === "MOMENT_FIND_NATURAL_WONDER") {
+                firstNaturalWonder = {
                     Id: moment.Id,
                     name: moment.InstanceDescription.split("the majesty of")[1].trim().slice(0, -1)
                 }

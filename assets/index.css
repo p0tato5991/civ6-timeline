@@ -140,9 +140,12 @@ code {
     background-repeat: no-repeat;
 }
 
+#timeline .moment.momentSmall {
+    /* display: ; */
+}
+
 #timeline .moment.momentSmall img {
     float: left;
-    vertical-align:text-bottom;
 }
 
 #timeline .moment.highlighted {
@@ -151,7 +154,8 @@ code {
 }
 
 #timeline .moment .momentDescription {
-    width: 456px;
+    width: 436px;
+    margin: 0 10px;
 }
 
 #timeline .moment .momentTitle {
@@ -162,7 +166,7 @@ code {
 }
 
 #timeline .moment .momentDetails {
-    margin-top: 30px;
+    margin-top: 25px;
     user-select: none;
 }
 

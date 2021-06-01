@@ -238,10 +238,8 @@ function generateTimeline(players, selectedPlayerID, moments, options) {
             let momentImg = getMomentImg(moment.Type, moment.InstanceDescription, getEra(currentEra));
 
             timeline.append(`<div id="moment_${moment.Id}" class="moment ${momentImg.type === "small" ? "momentSmall" : ""}">
-                ${momentImg ? (
-                    `<img class="momentImg ${momentImg.type === 'small' ? "momentImgSmall" : "momentImgLarge"}" src="${momentImg.src}">`
-                ) : ""}
-                <p class="momentTitle">${formatMoment(moment.Type)}</p>
+                ${momentImg.type === "large" ? `<img class="momentImg" src="${momentImg.src}">` : ""}
+                <p class="momentTitle">${momentImg.type === "small" ? `<img class="momentImgSmall" src="${momentImg.src}">` : ""}${formatMoment(moment.Type)}</p>
                 <p class="momentDescription">${moment.InstanceDescription}</p>
                 ${options.tooltips ? `<div class="momentTooltip">${formatMomentTooltip(moment.Type)}</div>` : ""}
                 ${options.details ? `<div class="momentDetails">

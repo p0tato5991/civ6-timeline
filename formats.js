@@ -31,22 +31,11 @@ function getCurrentGameEras(civID) {
 
 function formatMoment(moment) {
     return moments[`LOC_${moment}`];
-    // moment = moment.split("_").slice(1).join("_");
-
-    // if (tooltips[moment]) {
-    //     return tooltips[moment].split(" | ")[1];
-    // } else {
-    //     return moment.toLowerCase().split("_").map(m => m[0].toUpperCase() + m.slice(1)).join(" ");
-    // }
 }
 
 const icons = ["Citizen", "Governor", "Envoy", "GreatPerson", "GreatAdmiral", "GreatGeneral", "TradingPost", "Power", "Science", "Gold", "Faith", "Production", "Culture"];
 function formatMomentTooltip(moment) {
     let tooltip = moments[`LOC_${moment}_DESCRIPTION`];
-    // moment = moment.split("_").slice(1).join("_");
-
-    // if (tooltips[moment]) {
-    // let tooltip = tooltips[moment].split(" | ")[0];
 
     for (const key of icons) {
         if (tooltip.includes(`[ICON_${key}]`)) {
@@ -55,16 +44,13 @@ function formatMomentTooltip(moment) {
     }
 
     return tooltip;
-    // } else {
-    //     console.log(moment)
-    //     return moment.toLowerCase().split("_").map(m => m[0].toUpperCase() + m.slice(1)).join(" ");
-    // }
 }
 
-const DLCs = ["Rise and Fall", "Gathering Storm"];
-function getMomentImg(text, moment) {
+const mainDLCs = ["Rise and Fall", "Gathering Storm"];
+const dlcs = ["Rise and Fall", "Gathering Storm", "Australia", "Indonesia and Khmer", "Macedonia and Persia", "Nubia", "Poland", "Vikings Wonders"];
+function getMomentImg(moment, text, era) {
     let img;
-    DLCs.forEach(dlc => {
+    mainDLCs.forEach(dlc => {
         if (typeof imageRefs[dlc][moment] !== "undefined") {
             let dlcImage = imageRefs[dlc][moment];
             if (dlcImage.endsWith(".png")) {
@@ -82,7 +68,19 @@ function getMomentImg(text, moment) {
                 src: img,
             };
         } else if (img.endsWith(".customimage")) {
-            // return getCustomImage(text, moment);
+            let uniqueImg = getUniqueImg(img.replace(".customimage", ""), text, era);
+
+            if (uniqueImg.endsWith(".png")) {
+                return {
+                    type: "large",
+                    src: `assets/historic moment images/large/${uniqueImg}`
+                };
+            } else {
+                return {
+                    type: "small",
+                    src: `assets/historic moment images/small/${uniqueImg}.png`
+                };
+            }
         } else {
             return {
                 type: "small",
@@ -94,8 +92,26 @@ function getMomentImg(text, moment) {
     }
 }
 
-function getCustomImg(text, moment) {
+function getUniqueImg(illustration, text, era) {
+    let obj = customImgRefs[illustration];
 
+    if (obj.type === "era") {
+        for (i = 0; i < obj.data.length; i++) {
+            let value = obj.data[i];
+            if (typeof value.era === "object" ? value.era.includes(era) : value.era === era) {
+                return `${value.dlc}/${value.src}`;
+            }
+        }
+        return obj.default;
+    } else if (obj.type === "unique") {
+        for (i = 0; i < obj.data.length; i++) {
+            let value = obj.data[i];
+            if (text.includes(value.find)) {
+                return `${value.dlc}/${value.src}`;
+            }
+        }
+        return obj.default;
+    }
 }
 
 let moments = {
@@ -571,8 +587,75 @@ let imageRefs = {
 let customImgRefs = {
     "MOMENT_ILLUSTRATION_CIVIC_ERA": {
         type: "era",
+        data: [],
+        default: "MomentSmall_Culture"
+    },
+    "MOMENT_ILLUSTRATION_TECHNOLOGY_ERA": {
+        type: "era",
+        data: [],
+        default: "MomentSmall_Science"
+    },
+    "MOMENT_ILLUSTRATION_AIR_UNIT_ERA": {
+        type: "era",
         data: [
-            // R&F
+            { era: ["Ancient", "Classical", "Medieval", "Renaissance", "Industrial", "Modern"], src: "Moment_FirstAirUnitEarlyGame.png", dlc: "Rise and Fall" },
+            { era: ["Atomic", "Information", "Future"], src: "Moment_FirstAirUnitLateGame.png", dlc: "Rise and Fall" },
+        ],
+        default: "Rise and Fall/Moment_FirstAirUnitEarlyGame.png"
+    },
+    "MOMENT_ILLUSTRATION_SEA_UNIT_ERA": {
+        type: "era",
+        data: [
+            { era: ["Ancient", "Classical", "Medieval"], src: "Moment_FirstSeaUnitEarly.png", dlc: "Rise and Fall" },
+            { era: ["Renaissance", "Industrial", "Modern", "Atomic", "Information", "Future"], src: "Moment_FirstSeaUnitMid.png", dlc: "Rise and Fall" },
+        ],
+        default: "Rise and Fall/Moment_FirstSeaUnitMid.png"
+    },
+    "MOMENT_ILLUSTRATION_UNIQUE_UNIT": {
+        type: "unique",
+        data: [],
+        default: "MomentSmall_Military"
+    },
+    "MOMENT_ILLUSTRATION_GOVERNOR": {
+        type: "unique",
+        data: [],
+        default: "MomentSmall_Diplomacy"
+    },
+    "MOMENT_ILLUSTRATION_GOVERNMENT": {
+        type: "unique",
+        data: [],
+        default: "Rise and Fall/Moment_Government_ClassicalRepublic.png"
+    },
+    "MOMENT_ILLUSTRATION_GAME_ERA": {
+        type: "era",
+        data: [],
+        default: "MomentSmall_Dedication_Tourism.png"
+    },
+    "MOMENT_ILLUSTRATION_UNIQUE_BUILDING": {
+        type: "unique",
+        data: [],
+        default: "MomentSmall_Construction"
+    },
+    "MOMENT_ILLUSTRATION_UNIQUE_DISTRICT": {
+        type: "unique",
+        data: [],
+        default: "MomentSmall_Construction"
+    },
+    "MOMENT_ILLUSTRATION_UNIQUE_IMPROVEMENT": {
+        type: "unique",
+        data: [],
+        default: "MomentSmall_Construction"
+    },
+    "MOMENT_ILLUSTRATION_NATURAL_WONDER": {
+        type: "unique",
+        data: [],
+        default: "MomentSmall_Exploration"
+    }
+}
+
+let DLCcustomImgRefs = {
+    "Rise and Fall": {
+        "MOMENT_ILLUSTRATION_CIVIC_ERA": [
             { era: ["Ancient", "Classical"], src: "Moment_CompleteCivicClassical.png" },
             { era: "Medieval", src: "Moment_CompleteCivicMedieval.png" },
             { era: "Renaissance", src: "Moment_CompleteCivicRenaissance.png" },
@@ -580,15 +663,8 @@ let customImgRefs = {
             { era: "Modern", src: "Moment_CompleteCivicModern.png" },
             { era: "Atomic", src: "Moment_CompleteCivicAtomic.png" },
             { era: "Information", src: "Moment_CompleteCivicInformation.png" },
-            // GS
-            { era: "Future", src: "MomentXP2_CompleteCivic_Future.png" }
         ],
-        default: "MomentSmall_Culture"
-    },
-    "MOMENT_ILLUSTRATION_TECHNOLOGY_ERA": {
-        type: "era",
-        data: [
-            // R&F
+        "MOMENT_ILLUSTRATION_TECHNOLOGY_ERA": [
             { era: ["Ancient", "Classical"], src: "Moment_CompleteTech_Classical.png" },
             { era: "Medieval", src: "Moment_CompleteTech_Medieval.png" },
             { era: "Renaissance", src: "Moment_CompleteTech_Renaissance.png" },
@@ -596,31 +672,8 @@ let customImgRefs = {
             { era: "Modern", src: "Moment_CompleteTech_Modern.png" },
             { era: "Atomic", src: "Moment_CompleteTech_Atomic.png" },
             { era: "Information", src: "Moment_CompleteTech_Information.png" },
-            // GS
-            { era: "Future", src: "MomentXP2_CompleteFirstFutureEraTech.png" },
         ],
-        default: "MomentSmall_Science"
-    },
-    "MOMENT_ILLUSTRATION_AIR_UNIT_ERA": {
-        type: "era",
-        data: [
-            { era: ["Ancient", "Classical", "Medieval", "Renaissance", "Industrial", "Modern"], src: "Moment_FirstAirUnitEarlyGame.png" },
-            { era: ["Atomic", "Information", "Future"], src: "Moment_FirstAirUnitLateGame.png" },
-        ],
-        default: "Moment_FirstAirUnitEarlyGame.png"
-    },
-    "MOMENT_ILLUSTRATION_SEA_UNIT_ERA": {
-        type: "era",
-        data: [
-            { era: ["Ancient", "Classical", "Medieval"], src: "Moment_FirstSeaUnitEarly.png" },
-            { era: ["Renaissance", "Industrial", "Modern", "Atomic", "Information", "Future"], src: "Moment_FirstSeaUnitMid.png" },
-        ],
-        default: "Moment_FirstSeaUnitMid.png"
-    },
-    "MOMENT_ILLUSTRATION_UNIQUE_UNIT": {
-        type: "unique",
-        data: [
-            // R&F
+        "MOMENT_ILLUSTRATION_UNIQUE_UNIT": [
             { find: "P-51 Mustang", src: "Moment_UniqueUnit_America_Mustang.png" },
             { find: "Rough Rider", src: "Moment_UniqueUnit_America_Roughrider.png" },
             { find: "Mamluk", src: "Moment_UniqueUnit_Arab.png" },
@@ -642,24 +695,8 @@ let customImgRefs = {
             { find: "Saka Horse Archer", src: "Moment_UniqueUnit_Scythia.png" },
             { find: "Conquistador", src: "Moment_UniqueUnit_Spain.png" },
             { find: "War-Cart", src: "Moment_UniqueUnit_Sumerian.png" },
-            // GS
-            { find: "Mountie", src: "MomentXP2_TrainingMountie.png" },
-            { find: "Black Army", src: "MomentXP2_Training_BlackArmy.png" },
-            { find: "Huszár", src: "MomentXP2_TrainingHuzar.png" },
-            { find: "Warak’aq", src: "MomentXP2_TrainingWarakaq.png" },
-            { find: "Mandekalu Cavalry", src: "MomentXP2_TrainingMadekalu.png" },
-            { find: "Toa", src: "MomentXP2_Training_Toa.png" },
-            { find: "Barbary Corsair", src: "MomentXP2_TrainingBarbaryCorsair.png" },
-            { find: "Bireme", src: "MomentXP2_TrainingBireme.png" },
-            { find: "Janissary", src: "MomentXP2_TrainingJanissary.png" },
-            { find: "Carolean", src: "MomentXP2_TrainingCarolean.png" },
         ],
-        default: "MomentSmall_Military"
-    },
-    "MOMENT_ILLUSTRATION_GOVERNOR": {
-        type: "unique",
-        data: [
-            // R&F
+        "MOMENT_ILLUSTRATION_GOVERNOR": [
             { find: "Amani", src: "Moment_PromoteGovernor_Ambassador.png" },
             { find: "Liang", src: "Moment_PromoteGovernor_Builder.png" },
             { find: "Moksha", src: "Moment_PromoteGovernor_Cardinal.png" },
@@ -667,15 +704,8 @@ let customImgRefs = {
             { find: "Pingala", src: "Moment_PromoteGovernor_Educator.png" },
             { find: "Reyna", src: "Moment_PromoteGovernor_Merchant.png" },
             { find: "Magnus", src: "Moment_PromoteGovernor_ResourceManager.png" },
-            // GS
-            { find: "Ibrahim", src: "MomentXP2_PromoteGovernor_GrandVizier.png" }
         ],
-        default: "MomentSmall_Diplomacy"
-    },
-    "MOMENT_ILLUSTRATION_GOVERNMENT": {
-        type: "unique",
-        data: [
-            // R&F
+        "MOMENT_ILLUSTRATION_GOVERNMENT": [
             { find: "Autocracy", src: "Moment_Government_Autocracy.png" },
             { find: "Oligarchy", src: "Moment_Government_Oligarchy.png" },
             { find: "Classical Republic", src: "Moment_Government_ClassicalRepublic.png" },
@@ -685,17 +715,8 @@ let customImgRefs = {
             { find: "Fascism", src: "Moment_Government_Fascism.png" },
             { find: "Communism", src: "Moment_Government_Communism.png" },
             { find: "Democracy", src: "Moment_Government_Democracy.png" },
-            // GS
-            { find: "Corporate Libertarianism", src: "MomentXP2_Government_CorpLibertarianism.png" },
-            { find: "Digital Democracy", src: "MomentXP2_Gorvernment_DigitalDemocracy.png" },
-            { find: "Synthetic Technocracy", src: "MomentXP2_Government_SyntheticTechnocracy.png" }
         ],
-        default: "Moment_Government_ClassicalRepublic.png"
-    },
-    "MOMENT_ILLUSTRATION_GAME_ERA": {
-        type: "era",
-        data: [
-            // R&F
+        "MOMENT_ILLUSTRATION_GAME_ERA": [
             { era: "Ancient", src: "Moment_EraEntry_Ancient.png" },
             { era: "Classical", src: "Moment_EraEntry_Classical.png" },
             { era: "Medieval", src: "Moment_EraEntry_Medieval.png" },
@@ -704,31 +725,14 @@ let customImgRefs = {
             { era: "Modern", src: "Moment_EraEntry_Modern.png" },
             { era: "Atomic", src: "Moment_EraEntry_Atomic.png" },
             { era: "Information", src: "Moment_EraEntry_Information.png" },
-            // GS
-            { era: "Future", src: "MomentXP2_EnterFutureEra.png" },
         ],
-        default: "MomentSmall_Dedication_Tourism.png"
-    },
-    "MOMENT_ILLUSTRATION_UNIQUE_BUILDING": {
-        type: "unique",
-        data: [
-            // R&F
+        "MOMENT_ILLUSTRATION_UNIQUE_BUILDING": [
             { find: "Film Studio", src: "Moment_Infrastructure_America.png" },
             { find: "Madrasa", src: "Moment_Infrastructure_Arabia.png" },
             { find: "Electronics Factory", src: "Moment_Infrastructure_Japan.png" },
             { find: "Stave Church", src: "Moment_Infrastructure_Norway.png" },
-            // GS
-            { find: "Grand Bazaar", src: "MomentXP2_BuildingTheGrandBazaar.png" },
-            { find: "Marae", src: "MomentXP2_BuildingTheMarae.png" },
-            { find: "Queen's Bibliotheque", src: "MomentXP2_BuildingBiblioteque.png" },
-            { find: "Thermal Bath", src: "MomentXP2_BuildingTheThermalBath.png" },
         ],
-        default: "MomentSmall_Construction"
-    },
-    "MOMENT_ILLUSTRATION_UNIQUE_DISTRICT": {
-        type: "unique",
-        data: [
-            // R&F
+        "MOMENT_ILLUSTRATION_UNIQUE_DISTRICT": [
             { find: "Street Carnival", src: "Moment_Infrastructure_Brazil.png" },
             { find: "Copacabana", src: "Moment_Infrastructure_Brazil.png" },
             { find: "Royal Navy Dockyard", src: "Moment_Infrastructure_England.png" },
@@ -737,16 +741,8 @@ let customImgRefs = {
             { find: "Mbanza", src: "Moment_Infrastructure_Kongo.png" },
             { find: "Bath", src: "Moment_Infrastructure_Rome.png" },
             { find: "Lavra", src: "Moment_Infrastructure_Russia.png" },
-            // GS
-            { find: "Cothon", src: "MomentXP2_BuildingTheCothon.png" },
-            { find: "Suguba", src: "MomentXP2_BuildingSuguba.png" },
         ],
-        default: "MomentSmall_Construction"
-    },
-    "MOMENT_ILLUSTRATION_UNIQUE_IMPROVEMENT": {
-        type: "unique",
-        data: [
-            // R&F
+        "MOMENT_ILLUSTRATION_UNIQUE_IMPROVEMENT": [
             { find: "Great Wall", src: "Moment_Infrastructure_China.png" },
             { find: "Sphinx", src: "Moment_Infrastructure_Egypt.png" },
             { find: "Château", src: "Moment_Infrastructure_France.png" },
@@ -754,19 +750,8 @@ let customImgRefs = {
             { find: "Kurgan", src: "Moment_Infrastructure_Scythia.png" },
             { find: "Mission", src: "Moment_Infrastructure_Spanish.png" },
             { find: "Ziggurat", src: "Moment_Infrastructure_Ziggurat.png" },
-            // GS
-            { find: "Open-Air Museum", src: "MomentXP2_BuildingTheOpenAirMuseum.png" },
-            { find: "Ice Hockey Rink", src: "MomentXP2_BuildingIceHockeyRink.png" },
-            { find: "Terrace Farm", src: "MomentXP2_BuildingTheTerraceFarm.png" },
-            { find: "Pā", src: "MomentXP2_BuildingThePa.png" },
-            { find: "Qhapaq Ñan", src: "MomentXP2_BuildingTheQhapaqNan.png" },
         ],
-        default: "MomentSmall_Construction"
-    },
-    "MOMENT_ILLUSTRATION_NATURAL_WONDER": {
-        type: "unique",
-        data: [
-            // R&F
+        "MOMENT_ILLUSTRATION_NATURAL_WONDER": [
             { find: "Great Barrier Reef", src: "Moment_Naturalwonder_BarrierReef.png" },
             { find: "Cliffs of Dover", src: "Moment_NaturalWonder_CliffsOfDover.png" },
             { find: "Crater Lake", src: "Moment_Naturalwonder_CraterLake.png" },
@@ -779,7 +764,57 @@ let customImgRefs = {
             { find: "Torres del Paine", src: "Moment_NaturalWonder_Torres.png" },
             { find: "Tsingy de Bemaraha", src: "Moment_NaturalWonder_Tsingy.png" },
             { find: "Yosemite", src: "Moment_NaturalWonder_Yosemite.png" },
-            // GS
+        ]
+    },
+
+    "Gathering Storm": {
+        "MOMENT_ILLUSTRATION_CIVIC_ERA": [
+            { era: "Future", src: "MomentXP2_CompleteCivic_Future.png" }
+        ],
+        "MOMENT_ILLUSTRATION_TECHNOLOGY_ERA": [
+            { era: "Future", src: "MomentXP2_CompleteFirstFutureEraTech.png" },
+        ],
+        "MOMENT_ILLUSTRATION_UNIQUE_UNIT": [
+            { find: "Mountie", src: "MomentXP2_TrainingMountie.png" },
+            { find: "Black Army", src: "MomentXP2_Training_BlackArmy.png" },
+            { find: "Huszár", src: "MomentXP2_TrainingHuzar.png" },
+            { find: "Warak’aq", src: "MomentXP2_TrainingWarakaq.png" },
+            { find: "Mandekalu Cavalry", src: "MomentXP2_TrainingMadekalu.png" },
+            { find: "Toa", src: "MomentXP2_Training_Toa.png" },
+            { find: "Barbary Corsair", src: "MomentXP2_TrainingBarbaryCorsair.png" },
+            { find: "Bireme", src: "MomentXP2_TrainingBireme.png" },
+            { find: "Janissary", src: "MomentXP2_TrainingJanissary.png" },
+            { find: "Carolean", src: "MomentXP2_TrainingCarolean.png" },
+        ],
+        "MOMENT_ILLUSTRATION_GOVERNOR": [
+            { find: "Ibrahim", src: "MomentXP2_PromoteGovernor_GrandVizier.png" }
+        ],
+        "MOMENT_ILLUSTRATION_GOVERNMENT": [
+            { find: "Corporate Libertarianism", src: "MomentXP2_Government_CorpLibertarianism.png" },
+            { find: "Digital Democracy", src: "MomentXP2_Gorvernment_DigitalDemocracy.png" },
+            { find: "Synthetic Technocracy", src: "MomentXP2_Government_SyntheticTechnocracy.png" }
+        ],
+        "MOMENT_ILLUSTRATION_GAME_ERA": [
+            { era: "Future", src: "MomentXP2_EnterFutureEra.png" },
+        ],
+        "MOMENT_ILLUSTRATION_UNIQUE_BUILDING": [
+            { find: "Grand Bazaar", src: "MomentXP2_BuildingTheGrandBazaar.png" },
+            { find: "Marae", src: "MomentXP2_BuildingTheMarae.png" },
+            { find: "Queen's Bibliotheque", src: "MomentXP2_BuildingBiblioteque.png" },
+            { find: "Thermal Bath", src: "MomentXP2_BuildingTheThermalBath.png" },
+        ],
+        "MOMENT_ILLUSTRATION_UNIQUE_DISTRICT": [
+            { find: "Cothon", src: "MomentXP2_BuildingTheCothon.png" },
+            { find: "Suguba", src: "MomentXP2_BuildingSuguba.png" },
+        ],
+        "MOMENT_ILLUSTRATION_UNIQUE_IMPROVEMENT": [
+            { find: "Open-Air Museum", src: "MomentXP2_BuildingTheOpenAirMuseum.png" },
+            { find: "Ice Hockey Rink", src: "MomentXP2_BuildingIceHockeyRink.png" },
+            { find: "Terrace Farm", src: "MomentXP2_BuildingTheTerraceFarm.png" },
+            { find: "Pā", src: "MomentXP2_BuildingThePa.png" },
+            { find: "Qhapaq Ñan", src: "MomentXP2_BuildingTheQhapaqNan.png" },
+        ],
+        "MOMENT_ILLUSTRATION_NATURAL_WONDER": [
             { find: "Chocolate Hills", src: "MomentXP2_FindingChocolateHills.png" },
             { find: "Mato Tipila", src: "MomentXP2_FindingDevilsTower.png" },
             { find: "Gobustan", src: "MomentXP2_FindingGobustan.png" },
@@ -788,9 +823,96 @@ let customImgRefs = {
             { find: "Mount Vesuvius", src: "MomentXP2_FindingVesuvius.png" },
             { find: "Sahara el Beyda", src: "MomentXP2_FindingWhiteDesert.png" },
         ],
-        default: "MomentSmall_Exploration"
+    },
+
+    "Australia": {
+        "MOMENT_ILLUSTRATION_UNIQUE_UNIT": [
+            { find: "Digger", src: "Moment_UniqueUnit_Australia.png" }
+        ],
+        "MOMENT_ILLUSTRATION_UNIQUE_IMPROVEMENT": [
+            { find: "Outback Station", src: "Moment_Infrastructure_Australia.png" }
+        ],
+        "MOMENT_ILLUSTRATION_NATURAL_WONDER": [
+            { find: "Uluru", src: "Moment_Naturalwonder_Uluru.png" }
+        ]
+    },
+
+    "Aztec": {
+        "MOMENT_ILLUSTRATION_UNIQUE_UNIT": [
+            { find: "Eagle Warrior", src: "Moment_UniqueUnit_Aztec.png" }
+        ],
+        "MOMENT_ILLUSTRATION_UNIQUE_BUILDING": [
+            { find: "Tlachtli", src: "Moment_Infrastructure_Aztec.png" }
+        ]
+    },
+
+    "Indonesia and Khmer": {
+        "MOMENT_ILLUSTRATION_UNIQUE_UNIT": [
+            { find: "Jong", src: "Moment_UniqueUnit_Indonesia.png" },
+            { find: "Domrey", src: "Moment_UniqueUnit_Khmer.png" }
+        ],
+        "MOMENT_ILLUSTRATION_UNIQUE_IMPROVEMENT": [
+            { find: "Kampung", src: "Moment_Infrastructure_Indonesia.png" }
+        ],
+        "MOMENT_ILLUSTRATION_UNIQUE_BUILDING": [
+            { find: "Prasat", src: "Moment_Infrastructure_Khmer.png" }
+        ],
+        "MOMENT_ILLUSTRATION_NATURAL_WONDER": [
+            { find: "Hạ Long Bay", src: "Moment_Naturalwonder_HaLongBay.png" }
+        ]
+    },
+
+    "Macedonia and Persia": {
+        "MOMENT_ILLUSTRATION_UNIQUE_UNIT": [
+            { find: "Hetairoi", src: "Moment_UniqueUnit_Macedon_Hetairoi.png" },
+            { find: "Hypaspist", src: "Moment_UniqueUnit_Macedon_Hypaspist.png" },
+            { find: "Immortal", src: "Moment_UniqueUnit_Persia.png" }
+        ],
+        "MOMENT_ILLUSTRATION_UNIQUE_BUILDING": [
+            { find: "Basilikoi Paides", src: "Moment_Infrastructure_Macedon.png" }
+        ],
+        "MOMENT_ILLUSTRATION_UNIQUE_IMPROVEMENT": [
+            { find: "Pairidaeza", src: "Moment_Infrastructure_Persia.png" }
+        ]
+    },
+
+    "Nubia": {
+        "MOMENT_ILLUSTRATION_UNIQUE_UNIT": [
+            { find: "Pítati Archer", src: "Moment_UniqueUnit_Nubia.png" }
+        ],
+        "MOMENT_ILLUSTRATION_UNIQUE_BUILDING": [
+            { find: "Nubian Pyramid", src: "Moment_Infrastructure_Nubia.png" }
+        ]
+    },
+
+    "Poland": {
+        "MOMENT_ILLUSTRATION_UNIQUE_UNIT": [
+            { find: "Winged Hussar", src: "Moment_UniqueUnit_Poland.png" }
+        ],
+        "MOMENT_ILLUSTRATION_UNIQUE_BUILDING": [
+            { find: "Sukiennice", src: "Moment_Infrastructure_Poland.png" }
+        ]
+    },
+
+    "Vikings Wonders": {
+        "MOMENT_ILLUSTRATION_NATURAL_WONDER": [
+            { find: "Eyjafjallajökull", src: "Moment_NaturalWonder_Eyjafjallajokull.png" },
+            { find: "Giant's Causeway", src: "Moment_Naturalwonder_GiantsCauseway.png" },
+            { find: "Lysefjord", src: "Moment_Naturalwonder_Lyseford.png" }
+        ]
     }
 }
+
+Object.entries(DLCcustomImgRefs).forEach(dlc => {
+    Object.entries(dlc[1]).forEach(entry => {
+        let existing = customImgRefs[entry[0]].data;
+        let entries = entry[1];
+        entries.map(e => e.dlc = dlc[0]);
+        let updated = [...existing, ...entries];
+
+        customImgRefs[entry[0]].data = updated;
+    });
+});
 
 // let imageRefs1 = {};
 

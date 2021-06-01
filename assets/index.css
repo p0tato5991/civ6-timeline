@@ -122,7 +122,7 @@ code {
 }
 
 #timeline .moment {
-    width: 300px;
+    width: 456px;
     white-space: normal;
     margin: 0 20px;
     background-color: #8a7e32;
@@ -130,9 +130,19 @@ code {
     border-radius: 10px;
     padding: 10px 5px;
     text-shadow: 0 .8px 1px #706728;
-    box-shadow: 0 0 5px .5px #4a441b;
+    /* box-shadow: 0 0 5px .5px #4a441b; */
     cursor: default;
     transition: .2s ease-in-out;
+}
+
+#timeline .moment:not(.momentSmall) {
+    background-image: url("historic moment images/blank/Moment_Blank.png");
+    background-repeat: no-repeat;
+}
+
+#timeline .moment.momentSmall img {
+    float: left;
+    vertical-align:text-bottom;
 }
 
 #timeline .moment.highlighted {
@@ -141,7 +151,7 @@ code {
 }
 
 #timeline .moment .momentDescription {
-    width: 275px;
+    width: 456px;
 }
 
 #timeline .moment .momentTitle {

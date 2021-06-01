@@ -233,13 +233,13 @@ function generateTimeline(players, selectedPlayerID, moments, options) {
             }
             currentEra = moment.GameEra;
 
-            console.log(moment)
+            // console.log(moment)
 
-            let momentImg = getMomentImg(moment.InstanceDescription, moment.Type, currentEra);
+            let momentImg = getMomentImg(moment.Type, moment.InstanceDescription, getEra(currentEra));
 
-            timeline.append(`<div id="moment_${moment.Id}" class="moment">
+            timeline.append(`<div id="moment_${moment.Id}" class="moment ${momentImg.type === "small" ? "momentSmall" : ""}">
                 ${momentImg ? (
-                    `<img class="${momentImg.type === 'small' ? "momentImgSmall" : "momentImg"}" src="${momentImg.src}">`
+                    `<img class="momentImg ${momentImg.type === 'small' ? "momentImgSmall" : "momentImgLarge"}" src="${momentImg.src}">`
                 ) : ""}
                 <p class="momentTitle">${formatMoment(moment.Type)}</p>
                 <p class="momentDescription">${moment.InstanceDescription}</p>
